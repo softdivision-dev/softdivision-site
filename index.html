@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SOFTDIVISION</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: #131314;
+      overflow: hidden;
+    }
+
+    /* Subtle vignette like the original */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse at center,
+        transparent 40%,
+        rgba(0, 0, 0, 0.55) 100%
+      );
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    #stage {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    #code-block {
+      font-family: 'Roboto Mono', monospace;
+      font-size: 18px;
+      line-height: 30px;
+      letter-spacing: 0.05em;
+      font-weight: 400;
+    }
+
+    .line {
+      display: block;
+      white-space: pre;
+      min-height: 30px;
+    }
+
+    /* Syntax colors */
+    .blue   { color: #8AB4F8; }
+    .pink   { color: #C58AF9; }
+    .yellow { color: #FDD663; }
+    .lgrey  { color: #C4C7C5; }
+    .mgrey  { color: #80868B; }
+    .green  { color: #81C995; }
+    .orange { color: #FA903E; }
+
+    /* Blinking cursor */
+    #cursor {
+      display: inline-block;
+      width: 2px;
+      height: 18px;
+      background: #C4C7C5;
+      vertical-align: middle;
+      margin-left: 1px;
+      animation: blink 1s step-start infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div id="stage">
+    <div id="code-block"></div>
+  </div>
+
+  <script>
+    /*
+     * Each line = array of segments: { t: 'text', c: 'css-class' }
+     * Empty line = [{t:''}]
+     */
+    const LINES = [
+      [ {t:'#include', c:'blue'}, {t:' <iostream>', c:'lgrey'} ],
+      [ {t:'#include', c:'blue'}, {t:' <string>',   c:'lgrey'} ],
+      [ {t:''} ],
+      [ {t:'int ',  c:'pink'}, {t:'main', c:'yellow'}, {t:'() {', c:'lgrey'} ],
+      [ {t:'      // Version configuration', c:'mgrey'} ],
+      [ {t:'      '}, {t:'const ', c:'pink'}, {t:'std::string ', c:'lgrey'},
+        {t:'version', c:'lgrey'}, {t:' = ', c:'lgrey'}, {t:'"v0.1.0"', c:'green'} ],
+      [ {t:''} ],
+      [ {t:'      std::cout', c:'lgrey'}, {t:' << ', c:'lgrey'},
+        {t:'"================================================="', c:'green'},
+        {t:' << std::endl;', c:'lgrey'} ],
+      [ {t:'      std::cout', c:'lgrey'}, {t:' << ', c:'lgrey'},
+        {t:'"      SOFTDIVISION SIX "', c:'green'},
+        {t:' << version << std::endl;', c:'lgrey'} ],
+      [ {t:'      std::cout', c:'lgrey'}, {t:' << ', c:'lgrey'},
+        {t:'"      Company: SOFTDIVISION "', c:'green'},
+        {t:' << std::endl;', c:'lgrey'} ],
+      [ {t:'      std::cout', c:'lgrey'}, {t:' << ', c:'lgrey'},
+        {t:'"      Product: SIX (Softdivision Interactive eXperience...) "', c:'green'},
+        {t:' << std::endl;', c:'lgrey'} ],
+      [ {t:'      std::cout', c:'lgrey'}, {t:' << ', c:'lgrey'},
+        {t:'"      Status: Initializing Experience..."', c:'green'},
+        {t:') " << std::endl;', c:'lgrey'} ],
+      [ {t:'      std::cout', c:'lgrey'}, {t:' << ', c:'lgrey'},
+        {t:'"================================================="', c:'green'},
+        {t:' << std::endl;', c:'lgrey'} ],
+      [ {t:''} ],
+      [ {t:''} ],
+      [ {t:'      '}, {t:'return ', c:'pink'}, {t:'0', c:'orange'}, {t:';', c:'lgrey'} ],
+      [ {t:''} ],
+      [ {t:'}', c:'lgrey'} ],
+    ];
+
+    const container = document.getElementById('code-block');
+
+    const cursorEl  = document.createElement('span');
+    cursorEl.id     = 'cursor';
+
+    let lineIdx = 0;
+    let segIdx  = 0;
+    let charIdx = 0;
+    let currentLineEl = null;
+    let currentSegEl  = null;
+
+    function delay() {
+      return 18 + Math.random() * 28;
+    }
+
+    function newLine() {
+      const el = document.createElement('div');
+      el.className = 'line';
+      container.appendChild(el);
+      return el;
+    }
+
+    function newSpan(cls) {
+      const el = document.createElement('span');
+      if (cls) el.className = cls;
+      return el;
+    }
+
+    function tick() {
+      if (lineIdx >= LINES.length) return; // done
+
+      const segs = LINES[lineIdx];
+
+      // First char of a new line → create the line element
+      if (segIdx === 0 && charIdx === 0) {
+        currentLineEl = newLine();
+        currentLineEl.appendChild(cursorEl);
+      }
+
+      // Blank line → skip instantly
+      if (segs.length === 1 && segs[0].t === '') {
+        lineIdx++;
+        segIdx  = 0;
+        charIdx = 0;
+        setTimeout(tick, 60);
+        return;
+      }
+
+      const seg = segs[segIdx];
+
+      // First char of a new segment → create span
+      if (charIdx === 0) {
+        currentSegEl = newSpan(seg.c);
+        currentLineEl.insertBefore(currentSegEl, cursorEl);
+      }
+
+      currentSegEl.textContent += seg.t[charIdx];
+      charIdx++;
+
+      if (charIdx >= seg.t.length) {
+        segIdx++;
+        charIdx = 0;
+        if (segIdx >= segs.length) {
+          lineIdx++;
+          segIdx = 0;
+        }
+      }
+
+      setTimeout(tick, delay());
+    }
+
+    // Kick off after a short pause
+    setTimeout(tick, 600);
+  </script>
+</body>
+</html>
