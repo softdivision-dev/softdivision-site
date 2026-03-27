@@ -155,14 +155,16 @@ function tick() {
   if (lineIdx >= LINES.length) {
     // Wait for a moment before restarting the loop
     setTimeout(() => {
-      container.innerHTML = ''; // Clear the container
-      lineIdx = 0; // Reset line index
-      segIdx = 0;  // Reset segment index
-      charIdx = 0; // Reset character index
+      container.innerHTML = ''; // Ekranı temizle
+      container.appendChild(cursorEl); // İMLECİ GERİ GETİR (Sihirli Satır)
+      
+      lineIdx = 0; 
+      segIdx = 0;  
+      charIdx = 0; 
       currentLineEl = null;
       currentSegEl = null;
-      tick(); // Restart the typing animation
-    }, 4000); // Wait 4 seconds (4000ms) before looping
+      tick(); // Animasyonu baştan başlat
+    }, 4000); 
     return;
   }
 
