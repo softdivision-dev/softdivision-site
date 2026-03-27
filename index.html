@@ -151,7 +151,7 @@
       return el;
     }
 
-    function tick() {
+function tick() {
   if (lineIdx >= LINES.length) {
     // Wait for a moment before restarting the loop
     setTimeout(() => {
@@ -166,43 +166,45 @@
     return;
   }
 
-      // First char of a new line → create the line element
-      if (segIdx === 0 && charIdx === 0) {
-        currentLineEl = newLine();
-        currentLineEl.appendChild(cursorEl);
-      }
+  const segs = LINES[lineIdx];
 
-      // Blank line → skip instantly
-      if (segs.length === 1 && segs[0].t === '') {
-        lineIdx++;
-        segIdx  = 0;
-        charIdx = 0;
-        setTimeout(tick, 60);
-        return;
-      }
+  // First char of a new line → create the line element
+  if (segIdx === 0 && charIdx === 0) {
+    currentLineEl = newLine();
+    currentLineEl.appendChild(cursorEl);
+  }
 
-      const seg = segs[segIdx];
+  // Blank line → skip instantly
+  if (segs.length === 1 && segs[0].t === '') {
+    lineIdx++;
+    segIdx = 0;
+    charIdx = 0;
+    setTimeout(tick, 60);
+    return;
+  }
 
-      // First char of a new segment → create span
-      if (charIdx === 0) {
-        currentSegEl = newSpan(seg.c);
-        currentLineEl.insertBefore(currentSegEl, cursorEl);
-      }
+  const seg = segs[segIdx];
 
-      currentSegEl.textContent += seg.t[charIdx];
-      charIdx++;
+  // First char of a new segment → create span
+  if (charIdx === 0) {
+    currentSegEl = newSpan(seg.c);
+    currentLineEl.insertBefore(currentSegEl, cursorEl);
+  }
 
-      if (charIdx >= seg.t.length) {
-        segIdx++;
-        charIdx = 0;
-        if (segIdx >= segs.length) {
-          lineIdx++;
-          segIdx = 0;
-        }
-      }
+  currentSegEl.textContent += seg.t[charIdx];
+  charIdx++;
 
-      setTimeout(tick, delay());
+  if (charIdx >= seg.t.length) {
+    segIdx++;
+    charIdx = 0;
+    if (segIdx >= segs.length) {
+      lineIdx++;
+      segIdx = 0;
     }
+  }
+
+  setTimeout(tick, delay());
+}
 
     // Kick off after a short pause
     setTimeout(tick, 600);
