@@ -152,9 +152,19 @@
     }
 
     function tick() {
-      if (lineIdx >= LINES.length) return; // done
-
-      const segs = LINES[lineIdx];
+  if (lineIdx >= LINES.length) {
+    // Wait for a moment before restarting the loop
+    setTimeout(() => {
+      container.innerHTML = ''; // Clear the container
+      lineIdx = 0; // Reset line index
+      segIdx = 0;  // Reset segment index
+      charIdx = 0; // Reset character index
+      currentLineEl = null;
+      currentSegEl = null;
+      tick(); // Restart the typing animation
+    }, 4000); // Wait 4 seconds (4000ms) before looping
+    return;
+  }
 
       // First char of a new line → create the line element
       if (segIdx === 0 && charIdx === 0) {
